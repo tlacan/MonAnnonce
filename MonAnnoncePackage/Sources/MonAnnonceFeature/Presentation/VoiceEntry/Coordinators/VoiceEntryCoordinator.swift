@@ -1,35 +1,85 @@
 import SwiftUI
 import SwiftData
+import SwiftUICoordinator
 
-/// Coordinator for Voice Entry feature navigation
-public struct VoiceEntryCoordinator: View {
-    @Environment(\.modelContext) private var modelContext
+/// Coordinator for Voice Entry feature navigation using SwiftUICoordinator
+@MainActor
+public final class VoiceEntryCoordinator: Routing {
+    public weak var parent: Coordinator?
+    public var childCoordinators: [Coordinator] = []
+    public let navigationController: UINavigationController
+    public let startRoute: VoiceEntryRoute
     
-    public init() {}
+    public let modelContext: ModelContext
     
-    public var body: some View {
-        EntryListViewWrapper(modelContext: modelContext)
+    public init(
+        parent: Coordinator? = nil,
+        navigationController: UINavigationController,
+        modelContext: ModelContext,
+        startRoute: VoiceEntryRoute = .entryList
+    ) {
+        self.parent = parent
+        self.navigationController = navigationController
+        self.modelContext = modelContext
+        self.startRoute = startRoute
+    }
+    
+    public func handle(_ action: CoordinatorAction) {
+        switch action {
+        case let action as VoiceEntryAction:
+            handleVoiceEntryAction(action)
+        default:
+            parent?.handle(action)
+        }
+    }
+    
+    private func handleVoiceEntryAction(_ action: VoiceEntryAction) {
+        switch action {
+        case let .showEntryDetail(entry):
+            show(route: VoiceEntryRoute.entryDetail(entry))
+        case .showRecording:
+            show(route: VoiceEntryRoute.recording)
+        case .dismissRecording:
+            dismiss(animated: true)
+        case .entryCreated:
+            // Refresh the list when an entry is created
+            NotificationCenter.default.post(name: NSNotification.Name("EntryCreated"), object: nil)
+            dismiss(animated: true)
+        case .dismissDetail:
+            pop(animated: true)
+        }
     }
 }
 
-private struct EntryListViewWrapper: View {
-    let modelContext: ModelContext
-    @StateObject private var viewModel: EntryListViewModel
-    @State private var showingRecordingView = false
-    
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        let repository = SwiftDataEntryRepository(modelContext: modelContext)
-        let useCase = ListEntriesUseCase(repository: repository)
-        _viewModel = StateObject(wrappedValue: EntryListViewModel(listEntriesUseCase: useCase))
+// MARK: - RouterViewFactory
+
+extension VoiceEntryCoordinator: RouterViewFactory {
+    @ViewBuilder
+    public func view(for route: VoiceEntryRoute) -> some View {
+        switch route {
+        case .entryList:
+            EntryListView(coordinator: self)
+        case let .entryDetail(entry):
+            EntryDetailView(viewModel: createDetailViewModel(for: entry))
+        case .recording:
+            RecordingView(viewModel: createRecordingViewModel(), coordinator: self)
+        }
     }
     
-    var body: some View {
-        EntryListViewWithNavigation(
-            viewModel: viewModel,
-            showingRecordingView: $showingRecordingView,
-            recordingViewModel: createRecordingViewModel(),
-            modelContext: modelContext
+    // MARK: - View Model Factories
+    
+    private func createDetailViewModel(for entry: EntryModel) -> EntryDetailViewModel {
+        let repository = SwiftDataEntryRepository(modelContext: modelContext)
+        let emailService = MessageUIEmailService(recipientEmail: AppConfig.recipientEmail)
+        let sendEmailUseCase = SendEmailUseCase(
+            emailService: emailService,
+            recipientEmail: AppConfig.recipientEmail
+        )
+        
+        return EntryDetailViewModel(
+            entry: entry,
+            sendEmailUseCase: sendEmailUseCase,
+            repository: repository
         )
     }
     
@@ -59,37 +109,3 @@ private struct EntryListViewWrapper: View {
         )
     }
 }
-
-private struct EntryListViewWithNavigation: View {
-    @ObservedObject var viewModel: EntryListViewModel
-    @Binding var showingRecordingView: Bool
-    let recordingViewModel: RecordingViewModel
-    let modelContext: ModelContext
-    
-    var body: some View {
-        NavigationStack {
-            EntryListView(
-                viewModel: viewModel,
-                showingRecordingView: $showingRecordingView,
-                recordingViewModel: recordingViewModel,
-                detailViewModelFactory: createDetailViewModel
-            )
-        }
-    }
-    
-    private func createDetailViewModel(for entry: EntryModel) -> EntryDetailViewModel {
-        let repository = SwiftDataEntryRepository(modelContext: modelContext)
-        let emailService = MessageUIEmailService(recipientEmail: AppConfig.recipientEmail)
-        let sendEmailUseCase = SendEmailUseCase(
-            emailService: emailService,
-            recipientEmail: AppConfig.recipientEmail
-        )
-        
-        return EntryDetailViewModel(
-            entry: entry,
-            sendEmailUseCase: sendEmailUseCase,
-            repository: repository
-        )
-    }
-}
-

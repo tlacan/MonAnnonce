@@ -2,11 +2,12 @@ import SwiftUI
 
 public struct RecordingView: View {
     @StateObject private var viewModel: RecordingViewModel
-    @Environment(\.dismiss) private var dismiss
+    let coordinator: VoiceEntryCoordinator?
     @State private var hasRequestedPermissions = false
     
-    public init(viewModel: RecordingViewModel) {
+    public init(viewModel: RecordingViewModel, coordinator: VoiceEntryCoordinator? = nil) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.coordinator = coordinator
     }
     
     public var body: some View {
@@ -35,7 +36,9 @@ public struct RecordingView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("entry.record.cancel".localized()) {
                         viewModel.cancelRecording()
-                        dismiss()
+                        if let coordinator = coordinator {
+                            coordinator.handle(VoiceEntryAction.dismissRecording)
+                        }
                     }
                 }
             }
@@ -45,6 +48,14 @@ public struct RecordingView: View {
                     hasRequestedPermissions = true
                     if !granted {
                         viewModel.errorMessage = "entry.record.permissions.required".localized()
+                    }
+                }
+            }
+            .onChange(of: viewModel.isSaving) { oldValue, newValue in
+                // When saving completes, notify coordinator
+                if oldValue && !newValue && viewModel.errorMessage == nil {
+                    if let coordinator = coordinator {
+                        coordinator.handle(VoiceEntryAction.entryCreated)
                     }
                 }
             }
@@ -150,7 +161,9 @@ public struct RecordingView: View {
             // Auto-dismiss after a short delay when saving completes
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 if !viewModel.isSaving && viewModel.errorMessage?.isEmpty ?? true {
-                    dismiss()
+                    if let coordinator = coordinator {
+                        coordinator.handle(VoiceEntryAction.entryCreated)
+                    }
                 }
             }
         }

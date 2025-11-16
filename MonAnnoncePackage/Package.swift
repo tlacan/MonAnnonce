@@ -13,11 +13,17 @@ let package = Package(
             targets: ["MonAnnonceFeature"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/erikdrobne/SwiftUICoordinator", from: "3.0.0")
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "MonAnnonceFeature"
+            name: "MonAnnonceFeature",
+            dependencies: [
+                .product(name: "SwiftUICoordinator", package: "SwiftUICoordinator")
+            ]
         ),
         .testTarget(
             name: "MonAnnonceFeatureTests",

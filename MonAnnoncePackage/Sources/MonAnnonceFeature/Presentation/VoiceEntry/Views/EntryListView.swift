@@ -2,20 +2,14 @@ import SwiftUI
 
 public struct EntryListView: View {
     @StateObject private var viewModel: EntryListViewModel
-    @Binding var showingRecordingView: Bool
-    let recordingViewModel: RecordingViewModel?
-    let detailViewModelFactory: ((EntryModel) -> EntryDetailViewModel)?
+    let coordinator: VoiceEntryCoordinator
     
-    public init(
-        viewModel: EntryListViewModel,
-        showingRecordingView: Binding<Bool> = .constant(false),
-        recordingViewModel: RecordingViewModel? = nil,
-        detailViewModelFactory: ((EntryModel) -> EntryDetailViewModel)? = nil
-    ) {
-        _viewModel = StateObject(wrappedValue: viewModel)
-        _showingRecordingView = showingRecordingView
-        self.recordingViewModel = recordingViewModel
-        self.detailViewModelFactory = detailViewModelFactory
+    public init(coordinator: VoiceEntryCoordinator) {
+        self.coordinator = coordinator
+        // Create view model from coordinator's model context
+        let repository = SwiftDataEntryRepository(modelContext: coordinator.modelContext)
+        let useCase = ListEntriesUseCase(repository: repository)
+        _viewModel = StateObject(wrappedValue: EntryListViewModel(listEntriesUseCase: useCase))
     }
     
     public var body: some View {
@@ -33,33 +27,20 @@ public struct EntryListView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    showingRecordingView = true
+                    coordinator.handle(VoiceEntryAction.showRecording)
                 } label: {
                     Image(systemName: "mic.fill")
                 }
                 .accessibilityLabel("entry.record.new".localized())
             }
         }
-        .sheet(isPresented: $showingRecordingView) {
-            if let recordingViewModel = recordingViewModel {
-                RecordingView(viewModel: recordingViewModel)
-                    .onDisappear {
-                        Task {
-                            await viewModel.loadEntries()
-                        }
-                    }
-            }
-        }
-        .navigationDestination(for: EntryModel.self) { entry in
-            if let factory = detailViewModelFactory {
-                EntryDetailView(viewModel: factory(entry))
-            } else {
-                // Fallback for previews
-                Text("Detail view not configured")
-            }
-        }
         .task {
             await viewModel.loadEntries()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("EntryCreated"))) { _ in
+            Task {
+                await viewModel.loadEntries()
+            }
         }
     }
     
@@ -80,9 +61,12 @@ public struct EntryListView: View {
     
     private var entriesList: some View {
         List(viewModel.entries) { entry in
-            NavigationLink(value: entry) {
+            Button {
+                coordinator.handle(VoiceEntryAction.showEntryDetail(entry))
+            } label: {
                 EntryRowView(entry: entry)
             }
+            .buttonStyle(.plain)
         }
     }
     
@@ -127,14 +111,12 @@ struct EntryRowView: View {
 }
 
 #Preview {
+    // Preview requires a coordinator, so we'll create a mock one
+    // For preview purposes, we'll use a simplified view
     let repository = MockEntryRepository()
     let useCase = ListEntriesUseCase(repository: repository)
     let viewModel = EntryListViewModel(listEntriesUseCase: useCase)
-    return EntryListView(
-        viewModel: viewModel,
-        showingRecordingView: .constant(false),
-        recordingViewModel: nil
-    )
+    Text("Preview not available - requires coordinator")
 }
 
 // Mock repository for previews
