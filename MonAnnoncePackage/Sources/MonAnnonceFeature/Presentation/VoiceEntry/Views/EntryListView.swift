@@ -4,15 +4,18 @@ public struct EntryListView: View {
     @StateObject private var viewModel: EntryListViewModel
     @Binding var showingRecordingView: Bool
     let recordingViewModel: RecordingViewModel?
+    let detailViewModelFactory: ((EntryModel) -> EntryDetailViewModel)?
     
     public init(
         viewModel: EntryListViewModel,
         showingRecordingView: Binding<Bool> = .constant(false),
-        recordingViewModel: RecordingViewModel? = nil
+        recordingViewModel: RecordingViewModel? = nil,
+        detailViewModelFactory: ((EntryModel) -> EntryDetailViewModel)? = nil
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         _showingRecordingView = showingRecordingView
         self.recordingViewModel = recordingViewModel
+        self.detailViewModelFactory = detailViewModelFactory
     }
     
     public var body: some View {
@@ -26,7 +29,7 @@ public struct EntryListView: View {
                 entriesList
             }
         }
-        .navigationTitle("Entries")
+        .navigationTitle("entry.list.title".localized())
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -34,7 +37,7 @@ public struct EntryListView: View {
                 } label: {
                     Image(systemName: "mic.fill")
                 }
-                .accessibilityLabel("Record new entry")
+                .accessibilityLabel("entry.record.new".localized())
             }
         }
         .sheet(isPresented: $showingRecordingView) {
@@ -45,6 +48,14 @@ public struct EntryListView: View {
                             await viewModel.loadEntries()
                         }
                     }
+            }
+        }
+        .navigationDestination(for: EntryModel.self) { entry in
+            if let factory = detailViewModelFactory {
+                EntryDetailView(viewModel: factory(entry))
+            } else {
+                // Fallback for previews
+                Text("Detail view not configured")
             }
         }
         .task {
@@ -58,7 +69,7 @@ public struct EntryListView: View {
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
             
-            Text("No entries yet. Tap the record button to create your first entry.")
+            Text("entry.list.empty.state".localized())
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -103,11 +114,11 @@ struct EntryRowView: View {
                 if entry.emailSent {
                     Image(systemName: "envelope.fill")
                         .foregroundColor(.green)
-                        .accessibilityLabel("Email sent")
+                        .accessibilityLabel("entry.detail.email.sent.accessibility".localized())
                 } else {
                     Image(systemName: "envelope")
                         .foregroundColor(.secondary)
-                        .accessibilityLabel("Email not sent")
+                        .accessibilityLabel("entry.detail.email.not.sent.accessibility".localized())
                 }
             }
         }

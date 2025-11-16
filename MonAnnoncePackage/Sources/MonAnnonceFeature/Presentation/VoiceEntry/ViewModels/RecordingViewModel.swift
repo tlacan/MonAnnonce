@@ -85,7 +85,7 @@ public final class RecordingViewModel: ObservableObject {
         
         do {
             // Transcribe audio
-            let text = try await transcriptionService.transcribe(audioURL: audioURL, locale: nil)
+            let text = try await transcriptionService.transcribe(audioURL: audioURL, locale: Locale.init(identifier: "fr"))
             transcribedText = text
             isTranscribing = false
             

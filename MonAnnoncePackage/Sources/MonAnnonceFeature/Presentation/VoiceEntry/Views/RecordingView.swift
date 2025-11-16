@@ -29,11 +29,11 @@ public struct RecordingView: View {
                 }
             }
             .padding()
-            .navigationTitle("Record Entry")
+            .navigationTitle("entry.record.title".localized())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button("entry.record.cancel".localized()) {
                         viewModel.cancelRecording()
                         dismiss()
                     }
@@ -44,7 +44,7 @@ public struct RecordingView: View {
                     let granted = await viewModel.requestPermissions()
                     hasRequestedPermissions = true
                     if !granted {
-                        viewModel.errorMessage = "Permissions are required to record voice entries"
+                        viewModel.errorMessage = "entry.record.permissions.required".localized()
                     }
                 }
             }
@@ -54,7 +54,7 @@ public struct RecordingView: View {
     private var permissionsView: some View {
         VStack(spacing: 16) {
             ProgressView()
-            Text("Requesting permissions...")
+            Text("entry.record.requesting.permissions".localized())
                 .font(.body)
                 .foregroundColor(.secondary)
         }
@@ -66,7 +66,7 @@ public struct RecordingView: View {
                 .font(.system(size: 64))
                 .foregroundColor(.blue)
             
-            Text("Tap the record button to start recording")
+            Text("entry.record.ready".localized())
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -78,7 +78,7 @@ public struct RecordingView: View {
             } label: {
                 HStack {
                     Image(systemName: "mic.fill")
-                    Text("Start Recording")
+                    Text("entry.record.start".localized())
                 }
                 .font(.headline)
                 .foregroundColor(.white)
@@ -87,7 +87,7 @@ public struct RecordingView: View {
                 .background(Color.blue)
                 .cornerRadius(12)
             }
-            .accessibilityLabel("Start recording")
+            .accessibilityLabel("entry.record.start.accessibility".localized())
         }
     }
     
@@ -98,7 +98,7 @@ public struct RecordingView: View {
                 .foregroundColor(.red)
                 .symbolEffect(.pulse)
             
-            Text("Recording...")
+            Text("entry.record.recording".localized())
                 .font(.headline)
             
             Button {
@@ -108,7 +108,7 @@ public struct RecordingView: View {
             } label: {
                 HStack {
                     Image(systemName: "stop.fill")
-                    Text("Stop Recording")
+                    Text("entry.record.stop".localized())
                 }
                 .font(.headline)
                 .foregroundColor(.white)
@@ -117,14 +117,14 @@ public struct RecordingView: View {
                 .background(Color.red)
                 .cornerRadius(12)
             }
-            .accessibilityLabel("Stop recording")
+            .accessibilityLabel("entry.record.stop.accessibility".localized())
         }
     }
     
     private var transcribingView: some View {
         VStack(spacing: 16) {
             ProgressView()
-            Text("Transcribing audio...")
+            Text("entry.record.transcribing".localized())
                 .font(.body)
                 .foregroundColor(.secondary)
         }
@@ -133,7 +133,7 @@ public struct RecordingView: View {
     private var extractingView: some View {
         VStack(spacing: 16) {
             ProgressView()
-            Text("Extracting structured data...")
+            Text("entry.record.extracting".localized())
                 .font(.body)
                 .foregroundColor(.secondary)
         }
@@ -142,7 +142,7 @@ public struct RecordingView: View {
     private var savingView: some View {
         VStack(spacing: 16) {
             ProgressView()
-            Text("Saving entry and sending email...")
+            Text("entry.record.saving".localized())
                 .font(.body)
                 .foregroundColor(.secondary)
         }
@@ -162,12 +162,12 @@ public struct RecordingView: View {
                 .font(.system(size: 48))
                 .foregroundColor(.orange)
             
-            Text(viewModel.errorMessage ?? "An error occurred")
+            Text(viewModel.errorMessage ?? "entry.record.error".localized())
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             
-            Button("Try Again") {
+            Button("entry.record.try.again".localized()) {
                 viewModel.errorMessage = nil
             }
             .buttonStyle(.borderedProminent)

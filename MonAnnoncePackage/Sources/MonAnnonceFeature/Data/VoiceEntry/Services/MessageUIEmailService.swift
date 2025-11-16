@@ -13,9 +13,7 @@ public final class MessageUIEmailService: @unchecked Sendable, EmailService {
     }
     
     public func canSendEmail() -> Bool {
-        MainActor.assumeIsolated {
-            MFMailComposeViewController.canSendMail()
-        }
+        MFMailComposeViewController.canSendMail()
     }
     
     public func composeEmail(

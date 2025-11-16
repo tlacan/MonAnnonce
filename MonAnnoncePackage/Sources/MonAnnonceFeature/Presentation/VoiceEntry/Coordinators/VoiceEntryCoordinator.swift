@@ -71,11 +71,9 @@ private struct EntryListViewWithNavigation: View {
             EntryListView(
                 viewModel: viewModel,
                 showingRecordingView: $showingRecordingView,
-                recordingViewModel: recordingViewModel
+                recordingViewModel: recordingViewModel,
+                detailViewModelFactory: createDetailViewModel
             )
-            .navigationDestination(for: EntryModel.self) { entry in
-                EntryDetailView(viewModel: createDetailViewModel(for: entry))
-            }
         }
     }
     

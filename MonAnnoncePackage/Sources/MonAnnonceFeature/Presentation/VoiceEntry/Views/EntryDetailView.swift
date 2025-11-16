@@ -14,7 +14,7 @@ public struct EntryDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     // Transcribed Text Section
                     if !viewModel.entryModel.transcribedText.isEmpty {
-                        section(title: "Transcribed Text") {
+                        section(title: "entry.detail.transcribed.text".localized()) {
                             Text(viewModel.entryModel.transcribedText)
                                 .font(.body)
                                 .padding()
@@ -25,40 +25,40 @@ public struct EntryDetailView: View {
                     }
                     
                     // Structured Fields Section
-                    section(title: "Structured Data") {
+                    section(title: "entry.detail.structured.data".localized()) {
                         VStack(alignment: .leading, spacing: 12) {
                             if !viewModel.entryModel.id.isEmpty {
-                                fieldRow(label: "ID", value: viewModel.entryModel.id)
+                                fieldRow(label: "entry.detail.field.id".localized(), value: viewModel.entryModel.id)
                             }
                             if !viewModel.entryModel.title.isEmpty {
-                                fieldRow(label: "Title", value: viewModel.entryModel.title)
+                                fieldRow(label: "entry.detail.field.title".localized(), value: viewModel.entryModel.title)
                             }
                             if !viewModel.entryModel.brand.isEmpty {
-                                fieldRow(label: "Brand", value: viewModel.entryModel.brand)
+                                fieldRow(label: "entry.detail.field.brand".localized(), value: viewModel.entryModel.brand)
                             }
                             if !viewModel.entryModel.color.isEmpty {
-                                fieldRow(label: "Color", value: viewModel.entryModel.color)
+                                fieldRow(label: "entry.detail.field.color".localized(), value: viewModel.entryModel.color)
                             }
                             if !viewModel.entryModel.itemDescription.isEmpty {
-                                fieldRow(label: "Description", value: viewModel.entryModel.itemDescription)
+                                fieldRow(label: "entry.detail.field.description".localized(), value: viewModel.entryModel.itemDescription)
                             }
                             if viewModel.entryModel.isUnisex {
-                                fieldRow(label: "Is Unisex", value: "Yes")
+                                fieldRow(label: "entry.detail.field.unisex".localized(), value: "entry.detail.field.unisex.yes".localized())
                             }
                             if viewModel.entryModel.measurementLength > 0 {
-                                fieldRow(label: "Length", value: "\(viewModel.entryModel.measurementLength) cm")
+                                fieldRow(label: "entry.detail.field.length".localized(), value: "\(viewModel.entryModel.measurementLength) cm")
                             }
                             if viewModel.entryModel.measurementWidth > 0 {
-                                fieldRow(label: "Width", value: "\(viewModel.entryModel.measurementWidth) cm")
+                                fieldRow(label: "entry.detail.field.width".localized(), value: "\(viewModel.entryModel.measurementWidth) cm")
                             }
                             if viewModel.entryModel.price > 0 {
-                                fieldRow(label: "Price", value: String(format: "%.2f €", viewModel.entryModel.price))
+                                fieldRow(label: "entry.detail.field.price".localized(), value: String(format: "%.2f €", viewModel.entryModel.price))
                             }
                             if !viewModel.entryModel.size.isEmpty {
-                                fieldRow(label: "Size", value: viewModel.entryModel.size)
+                                fieldRow(label: "entry.detail.field.size".localized(), value: viewModel.entryModel.size)
                             }
                             if !viewModel.entryModel.status.isEmpty {
-                                fieldRow(label: "Status", value: viewModel.entryModel.status)
+                                fieldRow(label: "entry.detail.field.status".localized(), value: viewModel.entryModel.status)
                             }
                         }
                         .padding()
@@ -67,15 +67,15 @@ public struct EntryDetailView: View {
                     }
                     
                     // Metadata Section
-                    section(title: "Metadata") {
+                    section(title: "entry.detail.metadata".localized()) {
                         VStack(alignment: .leading, spacing: 12) {
                             fieldRow(
-                                label: "Created",
+                                label: "entry.detail.field.created".localized(),
                                 value: viewModel.entryModel.creationDate.formatted(date: .abbreviated, time: .shortened)
                             )
                             
                             HStack {
-                                Text("Email Status:")
+                                Text("entry.detail.field.email.status".localized())
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                 Spacer()
@@ -83,7 +83,7 @@ public struct EntryDetailView: View {
                                     HStack {
                                         Image(systemName: "envelope.fill")
                                             .foregroundColor(.green)
-                                        Text("Sent")
+                                        Text("entry.detail.email.sent".localized())
                                             .foregroundColor(.green)
                                         if let lastSent = viewModel.entryModel.lastEmailSentDate {
                                             Text("(\(lastSent.formatted(date: .abbreviated, time: .shortened)))")
@@ -95,7 +95,7 @@ public struct EntryDetailView: View {
                                     HStack {
                                         Image(systemName: "envelope")
                                             .foregroundColor(.secondary)
-                                        Text("Not Sent")
+                                        Text("entry.detail.email.not.sent".localized())
                                             .foregroundColor(.secondary)
                                     }
                                 }
@@ -119,7 +119,7 @@ public struct EntryDetailView: View {
                             } else {
                                 Image(systemName: "envelope.arrow.triangle.branch")
                             }
-                            Text(viewModel.isSendingEmail ? "Sending..." : "Resend Email")
+                            Text(viewModel.isSendingEmail ? "entry.detail.resend.email.sending".localized() : "entry.detail.resend.email".localized())
                         }
                         .font(.headline)
                         .foregroundColor(.white)
@@ -129,7 +129,7 @@ public struct EntryDetailView: View {
                         .cornerRadius(12)
                     }
                     .disabled(viewModel.isSendingEmail)
-                    .accessibilityLabel("Resend email")
+                    .accessibilityLabel("entry.detail.resend.email.accessibility".localized())
                     
                     // Success/Error Messages
                     if let successMessage = viewModel.successMessage {
@@ -160,11 +160,11 @@ public struct EntryDetailView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Entry Details")
+            .navigationTitle("entry.detail.title".localized())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
+                    Button("entry.detail.done".localized()) {
                         dismiss()
                     }
                 }

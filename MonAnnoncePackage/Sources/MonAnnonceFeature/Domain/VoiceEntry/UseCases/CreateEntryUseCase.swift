@@ -17,6 +17,7 @@ public struct CreateEntryUseCase: @unchecked Sendable {
     ) async throws -> EntryModel {
         // Create entry with extracted structured data
         let entry = EntryModel(
+            id: structuredData["id"] as? String ?? UUID().uuidString,
             transcribedText: transcribedText,
             audioRecordingURL: audioRecordingURL,
             brand: structuredData["brand"] as? String ?? "",
@@ -31,6 +32,7 @@ public struct CreateEntryUseCase: @unchecked Sendable {
             title: structuredData["title"] as? String ?? ""
         )
         
+        // Repository operations are handled internally on MainActor
         try await repository.save(entry)
         
         // Send email if use case is provided
@@ -73,6 +75,7 @@ public struct CreateEntryUseCase: @unchecked Sendable {
                 }.value
                 
                 // Update entry with email sent status
+                // Entry is already on MainActor since it was created there
                 entry.emailSent = true
                 entry.lastEmailSentDate = Date()
                 try await repository.update(entry)

@@ -1,15 +1,78 @@
 import Foundation
 
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
+
 /// Apple FoundationModels implementation for text extraction
-/// Note: This is a placeholder implementation. In a real scenario, this would use
-/// Apple's FoundationModels framework to extract structured data from text.
-/// For now, we'll use a simple pattern-based extraction as a fallback.
+/// Uses Foundation Models Framework with @Generable for structured data extraction when available
+/// Falls back to pattern-based extraction on older iOS versions
 public final class AppleFoundationModelsTextExtractionService: @unchecked Sendable, FoundationModelsTextExtractionService {
     public init() {}
     
     public func extractStructuredData(from text: String) async throws -> [String: Any] {
-        // Placeholder implementation using pattern matching
-        // In production, this would use Apple's FoundationModels framework
+        // Check if Foundation Models is available (iOS 26.0+)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            return try await extractWithFoundationModels(from: text)
+        } else {
+            // Fallback to pattern-based extraction for iOS < 26.0
+            return try await fallbackExtraction(from: text)
+        }
+    }
+    
+    @available(iOS 26.0, macOS 26.0, *)
+    private func extractWithFoundationModels(from text: String) async throws -> [String: Any] {
+        #if canImport(FoundationModels)
+        // Use Foundation Models Framework to extract structured data
+        let session = LanguageModelSession()
+        
+        // Create a prompt that instructs the model to extract entry information
+        let prompt = """
+        Extract structured information from the following text about a classified ad listing.
+        Extract all available information including: ID, title, brand, color, description, 
+        whether it's unisex, measurements (length and width in cm), price (in euros), size, and status.
+        The text has been done in French
+        
+        Text: \(text)
+        
+        Extract the information and return it in a structured format.
+        """
+        
+        do {
+            let response = try await session.respond(
+                to: prompt,
+                generating: EntryExtractionModel.self
+            )
+            
+            let extracted = response.content
+            
+            // Convert to dictionary format
+            var result: [String: Any] = [:]
+            result["id"] = extracted.id
+            result["title"] = extracted.title
+            result["brand"] = extracted.brand
+            result["color"] = extracted.color
+            result["itemDescription"] = extracted.itemDescription
+            result["isUnisex"] = extracted.isUnisex
+            result["measurementLength"] = extracted.measurementLength
+            result["measurementWidth"] = extracted.measurementWidth
+            result["price"] = extracted.price
+            result["size"] = extracted.size
+            result["status"] = extracted.status
+            
+            return result
+        } catch {
+            // Fallback to pattern-based extraction if Foundation Models fails
+            return try await fallbackExtraction(from: text)
+        }
+        #else
+        // FoundationModels not available, use fallback
+        return try await fallbackExtraction(from: text)
+        #endif
+    }
+    
+    private func fallbackExtraction(from text: String) async throws -> [String: Any] {
+        // Fallback pattern-based extraction
         var extracted: [String: Any] = [:]
         
         // Extract ID

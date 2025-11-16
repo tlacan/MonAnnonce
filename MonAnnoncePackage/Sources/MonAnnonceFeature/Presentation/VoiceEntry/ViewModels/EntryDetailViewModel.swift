@@ -73,9 +73,9 @@ public final class EntryDetailViewModel: ObservableObject {
             entry.lastEmailSentDate = Date()
             try await repo.update(entry)
             
-            successMessage = "Email sent successfully"
+            successMessage = "entry.detail.resend.email.success".localized()
         } catch {
-            errorMessage = "Failed to send email: \(error.localizedDescription)"
+            errorMessage = String(format: "entry.detail.resend.email.error".localized(), error.localizedDescription)
         }
         
         isSendingEmail = false
