@@ -28,38 +28,82 @@ public struct EntryDetailView: View {
                     section(title: "entry.detail.structured.data".localized()) {
                         VStack(alignment: .leading, spacing: 12) {
                             if !viewModel.entryModel.id.isEmpty {
-                                fieldRow(label: "entry.detail.field.id".localized(), value: viewModel.entryModel.id)
+                                fieldRow(label: "entry.detail.field.id".localized(), value: viewModel.entryModel.id, isEditing: false)
                             }
-                            if !viewModel.entryModel.title.isEmpty {
-                                fieldRow(label: "entry.detail.field.title".localized(), value: viewModel.entryModel.title)
+                            
+                            // Always show all fields, even if empty
+                            editableFieldRow(
+                                label: "entry.detail.field.title".localized(),
+                                value: $viewModel.editedTitle,
+                                isEditing: viewModel.isEditing
+                            )
+                            
+                            editableFieldRow(
+                                label: "entry.detail.field.brand".localized(),
+                                value: $viewModel.editedBrand,
+                                isEditing: viewModel.isEditing
+                            )
+                            
+                            editableFieldRow(
+                                label: "entry.detail.field.color".localized(),
+                                value: $viewModel.editedColor,
+                                isEditing: viewModel.isEditing
+                            )
+                            
+                            editableFieldRow(
+                                label: "entry.detail.field.description".localized(),
+                                value: $viewModel.editedDescription,
+                                isEditing: viewModel.isEditing,
+                                isMultiline: true
+                            )
+                            
+                            // Unisex toggle - always show in edit mode, show value in view mode
+                            if viewModel.isEditing {
+                                editableToggleRow(
+                                    label: "entry.detail.field.unisex".localized(),
+                                    value: $viewModel.editedIsUnisex
+                                )
+                            } else {
+                                let unisexValue = viewModel.entryModel.isUnisex ? "entry.detail.field.unisex.yes".localized() : "entry.detail.field.unisex.no".localized()
+                                fieldRow(label: "entry.detail.field.unisex".localized(), value: unisexValue, isEditing: false)
                             }
-                            if !viewModel.entryModel.brand.isEmpty {
-                                fieldRow(label: "entry.detail.field.brand".localized(), value: viewModel.entryModel.brand)
-                            }
-                            if !viewModel.entryModel.color.isEmpty {
-                                fieldRow(label: "entry.detail.field.color".localized(), value: viewModel.entryModel.color)
-                            }
-                            if !viewModel.entryModel.itemDescription.isEmpty {
-                                fieldRow(label: "entry.detail.field.description".localized(), value: viewModel.entryModel.itemDescription)
-                            }
-                            if viewModel.entryModel.isUnisex {
-                                fieldRow(label: "entry.detail.field.unisex".localized(), value: "entry.detail.field.unisex.yes".localized())
-                            }
-                            if viewModel.entryModel.measurementLength > 0 {
-                                fieldRow(label: "entry.detail.field.length".localized(), value: "\(viewModel.entryModel.measurementLength) cm")
-                            }
-                            if viewModel.entryModel.measurementWidth > 0 {
-                                fieldRow(label: "entry.detail.field.width".localized(), value: "\(viewModel.entryModel.measurementWidth) cm")
-                            }
-                            if viewModel.entryModel.price > 0 {
-                                fieldRow(label: "entry.detail.field.price".localized(), value: String(format: "%.2f €", viewModel.entryModel.price))
-                            }
-                            if !viewModel.entryModel.size.isEmpty {
-                                fieldRow(label: "entry.detail.field.size".localized(), value: viewModel.entryModel.size)
-                            }
-                            if !viewModel.entryModel.status.isEmpty {
-                                fieldRow(label: "entry.detail.field.status".localized(), value: viewModel.entryModel.status)
-                            }
+                            
+                            editableFieldRow(
+                                label: "entry.detail.field.length".localized(),
+                                value: $viewModel.editedMeasurementLength,
+                                isEditing: viewModel.isEditing,
+                                placeholder: "0",
+                                suffix: " cm"
+                            )
+                            
+                            editableFieldRow(
+                                label: "entry.detail.field.width".localized(),
+                                value: $viewModel.editedMeasurementWidth,
+                                isEditing: viewModel.isEditing,
+                                placeholder: "0",
+                                suffix: " cm"
+                            )
+                            
+                            editableFieldRow(
+                                label: "entry.detail.field.price".localized(),
+                                value: $viewModel.editedPrice,
+                                isEditing: viewModel.isEditing,
+                                placeholder: "0",
+                                suffix: " €",
+                                keyboardType: .decimalPad
+                            )
+                            
+                            editableFieldRow(
+                                label: "entry.detail.field.size".localized(),
+                                value: $viewModel.editedSize,
+                                isEditing: viewModel.isEditing
+                            )
+                            
+                            editableFieldRow(
+                                label: "entry.detail.field.status".localized(),
+                                value: $viewModel.editedStatus,
+                                isEditing: viewModel.isEditing
+                            )
                         }
                         .padding()
                         .background(Color(.systemGray6))
@@ -71,7 +115,8 @@ public struct EntryDetailView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             fieldRow(
                                 label: "entry.detail.field.created".localized(),
-                                value: viewModel.entryModel.creationDate.formatted(date: .abbreviated, time: .shortened)
+                                value: viewModel.entryModel.creationDate.formatted(date: .abbreviated, time: .shortened),
+                                isEditing: false
                             )
                             
                             HStack {
@@ -163,9 +208,36 @@ public struct EntryDetailView: View {
             .navigationTitle("entry.detail.title".localized())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("entry.detail.done".localized()) {
-                        dismiss()
+                if viewModel.isEditing {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("entry.detail.cancel".localized()) {
+                            viewModel.cancelEditing()
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
+                            Task {
+                                await viewModel.saveChanges()
+                            }
+                        } label: {
+                            if viewModel.isSaving {
+                                ProgressView()
+                            } else {
+                                Text("entry.detail.save".localized())
+                            }
+                        }
+                        .disabled(viewModel.isSaving)
+                    }
+                } else {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("entry.detail.done".localized()) {
+                            dismiss()
+                        }
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("entry.detail.edit".localized()) {
+                            viewModel.startEditing()
+                        }
                     }
                 }
             }
@@ -181,7 +253,7 @@ public struct EntryDetailView: View {
         }
     }
     
-    private func fieldRow(label: String, value: String) -> some View {
+    private func fieldRow(label: String, value: String, isEditing: Bool) -> some View {
         HStack(alignment: .top) {
             Text(label + ":")
                 .font(.subheadline)
@@ -190,6 +262,68 @@ public struct EntryDetailView: View {
             Text(value)
                 .font(.subheadline)
                 .foregroundColor(.primary)
+            Spacer()
+        }
+    }
+    
+    private func editableFieldRow(
+        label: String,
+        value: Binding<String>,
+        isEditing: Bool,
+        placeholder: String = "",
+        suffix: String = "",
+        isMultiline: Bool = false,
+        keyboardType: UIKeyboardType = .default
+    ) -> some View {
+        HStack(alignment: .top) {
+            Text(label + ":")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .frame(width: 100, alignment: .leading)
+            
+            if isEditing {
+                if isMultiline {
+                    TextField(placeholder, text: value, axis: .vertical)
+                        .font(.subheadline)
+                        .textFieldStyle(.roundedBorder)
+                        .lineLimit(3...6)
+                } else {
+                    HStack {
+                        TextField(placeholder, text: value)
+                            .font(.subheadline)
+                            .textFieldStyle(.roundedBorder)
+                            .keyboardType(keyboardType)
+                        if !suffix.isEmpty {
+                            Text(suffix)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            } else {
+                let displayValue = value.wrappedValue.isEmpty ? "-" : (value.wrappedValue + suffix)
+                Text(displayValue)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+            }
+            
+            Spacer()
+        }
+    }
+    
+    private func editableToggleRow(
+        label: String,
+        value: Binding<Bool>
+    ) -> some View {
+        HStack {
+            Text(label + ":")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .frame(width: 100, alignment: .leading)
+            
+            Toggle("", isOn: value)
+                .labelsHidden()
+            
             Spacer()
         }
     }
