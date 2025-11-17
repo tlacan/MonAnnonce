@@ -4,7 +4,8 @@ import Foundation
 /// SwiftData model for Entry entity with structured fields
 @Model
 public final class EntryModel {
-    @Attribute(.unique) public var id: String
+    @Attribute(.unique) public var entryId: String
+    public var id: String
     public var transcribedText: String
     public var creationDate: Date
     public var emailSent: Bool
@@ -43,6 +44,7 @@ public final class EntryModel {
         title: String = "",
         images: [URL] = []
     ) {
+        self.entryId = UUID().uuidString
         self.id = id
         self.transcribedText = transcribedText
         self.creationDate = creationDate

@@ -10,6 +10,7 @@ public final class EntryDetailViewModel: ObservableObject {
     @Published public var isSaving = false
     
     // Editable fields
+    @Published public var editedId: String
     @Published public var editedTitle: String
     @Published public var editedBrand: String
     @Published public var editedColor: String
@@ -35,6 +36,7 @@ public final class EntryDetailViewModel: ObservableObject {
         self.repository = repository
         
         // Initialize editable fields with current values
+        self.editedId = entry.id
         self.editedTitle = entry.title
         self.editedBrand = entry.brand
         self.editedColor = entry.color
@@ -59,6 +61,7 @@ public final class EntryDetailViewModel: ObservableObject {
     
     public func cancelEditing() {
         // Reset to original values
+        editedId = entry.id
         editedTitle = entry.title
         editedBrand = entry.brand
         editedColor = entry.color
