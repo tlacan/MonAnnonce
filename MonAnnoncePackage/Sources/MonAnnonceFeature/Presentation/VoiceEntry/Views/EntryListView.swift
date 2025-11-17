@@ -116,7 +116,7 @@ struct EntryRowView: View {
     let repository = MockEntryRepository()
     let useCase = ListEntriesUseCase(repository: repository)
     let viewModel = EntryListViewModel(listEntriesUseCase: useCase)
-    Text("Preview not available - requires coordinator")
+    Text("preview.not.available".localized())
 }
 
 // Mock repository for previews

@@ -74,7 +74,7 @@ public struct EntryDetailView: View {
                             value: $viewModel.editedMeasurementLength,
                             isEditing: viewModel.isEditing,
                             placeholder: "0",
-                            suffix: " cm"
+                            suffix: "unit.centimeters".localized()
                         )
                         
                         editableFieldRow(
@@ -82,7 +82,7 @@ public struct EntryDetailView: View {
                             value: $viewModel.editedMeasurementWidth,
                             isEditing: viewModel.isEditing,
                             placeholder: "0",
-                            suffix: " cm"
+                            suffix: "unit.centimeters".localized()
                         )
                         
                         editableFieldRow(
@@ -90,7 +90,7 @@ public struct EntryDetailView: View {
                             value: $viewModel.editedPrice,
                             isEditing: viewModel.isEditing,
                             placeholder: "0",
-                            suffix: " €",
+                            suffix: "unit.currency.euro".localized(),
                             keyboardType: .decimalPad
                         )
                         

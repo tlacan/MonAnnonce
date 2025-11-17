@@ -43,7 +43,7 @@ public final class RecordingViewModel: ObservableObject {
         errorMessage = nil
         
         guard hasPermissions() else {
-            errorMessage = "Microphone and speech recognition permissions are required"
+            errorMessage = "error.permissions.required".localized()
             return
         }
         
@@ -52,7 +52,7 @@ public final class RecordingViewModel: ObservableObject {
             recordingURL = url
             isRecording = true
         } catch {
-            errorMessage = "Failed to start recording: \(error.localizedDescription)"
+            errorMessage = String(format: "error.start.recording".localized(), error.localizedDescription)
         }
     }
     
@@ -68,7 +68,7 @@ public final class RecordingViewModel: ObservableObject {
             await transcribeAndCreateEntry(audioURL: url)
         } catch {
             isRecording = false
-            errorMessage = "Failed to stop recording: \(error.localizedDescription)"
+            errorMessage = String(format: "error.stop.recording".localized(), error.localizedDescription)
         }
     }
     
@@ -107,7 +107,7 @@ public final class RecordingViewModel: ObservableObject {
             isTranscribing = false
             isExtracting = false
             isSaving = false
-            errorMessage = "Failed to process recording: \(error.localizedDescription)"
+            errorMessage = String(format: "error.process.recording".localized(), error.localizedDescription)
         }
     }
 }

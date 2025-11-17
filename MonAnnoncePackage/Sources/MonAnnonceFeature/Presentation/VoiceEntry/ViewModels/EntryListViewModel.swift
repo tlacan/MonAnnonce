@@ -22,7 +22,7 @@ public final class EntryListViewModel: ObservableObject {
             entries = fetchedEntries
             isLoading = false
         } catch {
-            errorMessage = "Failed to load entries: \(error.localizedDescription)"
+            errorMessage = String(format: "error.load.entries".localized(), error.localizedDescription)
             isLoading = false
         }
     }
